@@ -51,6 +51,47 @@ def solve_lp(G):
     return lp_val, x_val
 
 
+
+# =========================
+# Strong branching
+# =========================
+
+def strong_branch_vertex(G, S_half, max_candidates=5, eps=1e-6):
+    """
+    Partial strong branching:
+    evaluates LP bound improvement for a few candidates
+    """
+    base_lp, _ = solve_lp(G)
+
+    # heuristic preselection: highest degree first
+    candidates = sorted(
+        S_half,
+        key=lambda v: len(G.neighbors(v)),
+        reverse=True
+    )[:max_candidates]
+
+    best_v = None
+    best_score = -1
+
+    for v in candidates:
+        # x_v = 1
+        G1 = G.remove_vertices({v})
+        lp1, _ = solve_lp(G1)
+
+        # x_v = 0
+        Nv = G.neighbors(v)
+        G0 = G.remove_vertices({v} | Nv)
+        lp0, _ = solve_lp(G0)
+
+        score = max(lp1 - base_lp, lp0 - base_lp, eps)
+
+        if score > best_score:
+            best_score = score
+            best_v = v
+
+    return best_v
+
+
 # ---------- Branch and Bound ----------
 
 UB = math.inf
@@ -89,7 +130,8 @@ def branch_and_bound(G, Z):
         UB = min(UB, Z_new)
         return
 
-    v = branch_and_bound(G_red, S_half)
+    #v = branch_and_bound(G_red, S_half)
+    v = strong_branch_vertex(G_red, S_half)
 
     branch_and_bound(
         G_red.remove_vertices({v}),
@@ -101,6 +143,7 @@ def branch_and_bound(G, Z):
         G_red.remove_vertices({v} | Nv),
         Z_new + sum(G_red.c[u] for u in Nv)
     )
+
 
 
 
@@ -116,7 +159,7 @@ def load_instance(path):
     return Graph(V, E, c)
 
 
-G = load_instance("/Users/quanlamnhat/Documents/Math/GUSTAVE Eiffel/Project Optimization/instances/mk11-b2.vc")
+G = load_instance("/Users/quanlamnhat/Documents/code/code_sample/discrete-optimization-project/instances/mk11-b2.vc")
 UB = math.inf
 branch_and_bound(G, 0)
 print("Optimal vertex cover cost:", UB)
