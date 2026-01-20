@@ -96,7 +96,7 @@ def strong_branch_vertex(G, S_half, max_candidates=5, eps=1e-6):
 
 UB = math.inf
 
-def branch_and_bound(G, Z):
+def branch_and_bound(G: Graph, Z):
     global UB, lp_counter, node_counter
 
     node_counter += 1  # <-- tree size counter
@@ -159,7 +159,7 @@ def load_instance(path):
     return Graph(V, E, c)
 
 
-G = load_instance("/Users/quanlamnhat/Documents/code/code_sample/discrete-optimization-project/instances/mk11-b2.vc")
+G = load_instance("/instances/mk11-b2.vc")
 UB = math.inf
 branch_and_bound(G, 0)
 print("Optimal vertex cover cost:", UB)
