@@ -154,7 +154,7 @@ def run_all_instances(instance_dir, output_file, cutoff=60):
 # Main
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    INSTANCE_DIR = "instances"     # thư mục chứa .vc
+    INSTANCE_DIR = "instances"     # folder of the .vc input
     OUTPUT_FILE = "results.csv"
     CUTOFF = 60
 
