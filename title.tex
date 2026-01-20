@@ -1,0 +1,100 @@
+\newcommand{\myBackround}
+{
+    \includegraphics[width=\paperwidth]{img/Background 1.png}
+}
+
+% Title
+\newcommand{\myTitle}
+{
+    Research and Development of \\
+    Diffusion-based Attacks to watermarks
+}
+
+\newcommand{\mySubTitle}
+{
+    Biweekly Report
+}
+
+% Author
+% Author
+% Author
+% Author
+\newcommand{\myAuthor}   
+{
+    \begin{center}
+        \begin{tabular}{ll}
+            \textbf{Instructors} & \textbf{Students} \\
+            Dr. Nguyen An Khuong & Chau Dang Minh - 2013748 \\
+            Assoc. Prof. Le Xuan Truong & Le Xuan Huy - 2011266\\
+            Mr. Le Thanh Son &  \\
+            Mr. Tran Dinh Vinh Thuy & \\
+        \end{tabular}
+    \end{center}
+}
+
+
+% Affiliation
+\newcommand{\myAffiliate}
+{
+ % Affiliation here
+}
+
+% Presentation Date
+\newcommand{\myDate}   
+{
+    \monthyeardate\today
+}
+
+% Logo
+% \newcommand{\myLogo}   
+% {
+%     \includegraphics[width=3.5cm]{Beamer-Logo.png}
+% }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%% Title slide code %%%%%%%%%%%
+\begin{tikzpicture}[remember picture,overlay]
+
+% Background image
+\node[above right,inner sep=0pt] at (current page.south west)
+    {
+        \myBackround
+    };
+    
+% Title & Subtitle
+\node
+[
+    above=0.5cm,
+    align=center,
+    fill=brown!20,
+    rounded corners,
+    inner xsep=15pt,
+    inner ysep=10pt, 
+    minimum width=0.7\textwidth,
+    text width=0.6\textwidth
+] (title) at (current page.center)
+{
+    \Large \myTitle  \\[5pt]
+    \small \mySubTitle
+};
+
+% Author 
+\node[ below=0.5cm] (author) at (title.south){\myAuthor};
+
+% % Author 
+% \node[ below=0.5cm] (affiliate) at (title.south){\myAffiliate};
+
+% Date
+\node[below=0.5cm] (date) at (author.south){\large \myDate};
+
+% % Logo
+% \node
+% [
+%     below right =0.25cm and 0.5cm
+% ] at (current page.north west)
+% {
+%     \myLogo
+% };
+
+\end{tikzpicture}

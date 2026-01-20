@@ -1,0 +1,29 @@
+# LaTeX intermediate and auxiliary files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fls
+*.fdb_latexmk
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+
+# LaTeXmk / temp files
+*.xdv
+*.synctex.gz
+
+# Additional build artifacts you probably don't want in git
+*.idx
+*.ilg
+*.ind
+
+# Keep source images (do not ignore `fig/` by default)
+# Remove or change the following if you do not want to ignore PDFs
+# *.pdf
