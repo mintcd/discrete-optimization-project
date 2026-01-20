@@ -1,3 +1,5 @@
+import os
+import csv
 import networkx as nx
 import pulp
 import time
@@ -8,7 +10,7 @@ import time
 def parse_vc(path):
     with open(path) as f:
         n, m = map(int, f.readline().split())
-        _ = f.readline()  # skip vertex weights
+        _ = f.readline()  # skip weights
         edges = [tuple(map(int, line.split())) for line in f]
 
     G = nx.Graph()
@@ -32,54 +34,50 @@ def solve_lp(G):
     return {v: x[v].value() for v in G.nodes()}, pulp.value(prob.objective)
 
 # ------------------------------------------------------------
-# Branch and Bound Algorithm
+# Branch and Bound
 # ------------------------------------------------------------
 def vertex_cover_bnb(G, cutoff=60):
     start = time.time()
 
     UB = G.number_of_nodes()
     lp_calls = 0
-    bnb_nodes = 0   # <-- size of BnB tree
+    bnb_nodes = 0
 
     def recurse(G, Z):
         nonlocal UB, lp_calls, bnb_nodes
-        bnb_nodes += 1   # count this node in BnB tree
+        bnb_nodes += 1
 
-        # cutoff
         if time.time() - start > cutoff:
             return
 
-        # feasible solution
         if G.number_of_edges() == 0:
             UB = min(UB, Z)
             return
 
-        # LP relaxation
         x, lp_val = solve_lp(G)
         lp_calls += 1
 
-        LB = Z + lp_val
-        if LB >= UB:
+        if Z + lp_val >= UB:
             return
 
-        # integral LP solution
         fractional = [v for v in x if x[v] not in (0, 1)]
         if not fractional:
             UB = min(UB, Z + int(lp_val))
             return
 
-        # Nemhauser–Trotter Theorem
         S1 = {v for v in x if x[v] == 1}
         S0 = {v for v in x if x[v] == 0}
 
         Gp = G.copy()
         Zp = Z
 
+        # S1
         for v in S1:
             if v in Gp:
                 Gp.remove_node(v)
                 Zp += 1
 
+        # S0 (simple version – giữ nguyên code của bạn)
         for v in S0:
             if v in Gp:
                 nbrs = list(Gp.neighbors(v))
@@ -89,16 +87,14 @@ def vertex_cover_bnb(G, cutoff=60):
                         Gp.remove_node(u)
                         Zp += 1
 
-        # branch on fractional variable
+        # branch
         v = fractional[0]
 
-        # Branch 1: include v
         G1 = Gp.copy()
         if v in G1:
             G1.remove_node(v)
         recurse(G1, Zp + 1)
 
-        # Branch 2: exclude v (include neighbors)
         G2 = Gp.copy()
         if v in G2:
             nbrs = list(G2.neighbors(v))
@@ -112,20 +108,54 @@ def vertex_cover_bnb(G, cutoff=60):
     return UB, lp_calls, bnb_nodes, time.time() - start
 
 # ------------------------------------------------------------
+# Run all instances
+# ------------------------------------------------------------
+def run_all_instances(instance_dir, output_file, cutoff=60):
+    results = []
+
+    for filename in sorted(os.listdir(instance_dir)):
+        if not filename.endswith(".vc"):
+            continue
+
+        path = os.path.join(instance_dir, filename)
+        print(f"Running {filename}...")
+
+        G = parse_vc(path)
+
+        opt, lp_calls, bnb_nodes, runtime = vertex_cover_bnb(G, cutoff)
+
+        results.append([
+            filename,
+            G.number_of_nodes(),
+            G.number_of_edges(),
+            opt,
+            lp_calls,
+            bnb_nodes,
+            round(runtime, 2)
+        ])
+
+    # write CSV
+    with open(output_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "instance",
+            "|V|",
+            "|E|",
+            "opt_VC",
+            "LP_calls",
+            "BnB_nodes",
+            "runtime_sec"
+        ])
+        writer.writerows(results)
+
+    print(f"\nResults written to {output_file}")
+
+# ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    path = "/Users/quanlamnhat/Documents/code/code_sample/discrete-optimization-project/instances/MANN-a9.vc"   # <-- change the file direction here
-    cutoff = 60
+    INSTANCE_DIR = "instances"     # thư mục chứa .vc
+    OUTPUT_FILE = "results.csv"
+    CUTOFF = 60
 
-    G = parse_vc(path)
-    print("Vertices:", G.number_of_nodes())
-    print("Edges:", G.number_of_edges())
-
-    opt, lp_calls, bnb_nodes, runtime = vertex_cover_bnb(G, cutoff)
-
-    print("\n===== RESULT =====")
-    print("Optimal Vertex Cover Size:", opt)
-    print("LP relaxations solved:", lp_calls)
-    print("BnB tree size:", bnb_nodes)
-    print("Runtime (s):", round(runtime, 2))
+    run_all_instances(INSTANCE_DIR, OUTPUT_FILE, CUTOFF)
