@@ -27,3 +27,4 @@
 # Keep source images (do not ignore `fig/` by default)
 # Remove or change the following if you do not want to ignore PDFs
 # *.pdf
+.vscode/
