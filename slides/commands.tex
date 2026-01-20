@@ -32,3 +32,10 @@
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\rank}{\text{rank}}
 \newcommand{\grad}{\text{grad}}
+
+% TikZ command for drawing a segment between two points
+\newcommand{\segment}[4]{%
+  \fill[gustave] (#1,#2) circle (2pt) node[below=3pt] {};
+  \fill[gustave] (#3,#4) circle (2pt) node[above=3pt] {};
+  \draw[thick, gustave] (#1,#2) -- (#3,#4);
+}

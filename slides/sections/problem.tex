@@ -1,0 +1,66 @@
+\section{Problem}
+
+\begin{frame}{Original Vertex Cover}
+    Given a graph $G = (V,E)$, a \textbf{vertex cover} is a subset of vertices $S \subseteq V$ such that for every edge $\{u,v\} \in E$, at least one of $u$ or $v$ is in $S$.
+
+    The \textbf{minimum vertex cover} problem seeks to find a vertex cover of the smallest possible size.
+
+    Let $w: V \to \mathbb{R}^+$ be a weight function assigning a positive weight to each vertex. The \textbf{weighted minimum vertex cover} problem aims to find a vertex cover $S$ that minimizes the total weight
+    $$w(S):=\sum_{v \in S} w(v).$$
+
+    % The \textbf{Minimum Vertex Cover} \textbf{(MVC)} is an extensively studied problem with numerous applications in operation research. MVC is a well-known NP-Complete problem.
+
+    % The problem seeks the smallest set of vertices such that every edge in the graph has at least one endpoint in it, and hence forming the MVC solution.
+
+\end{frame}
+
+\begin{frame}{Integer Programming Formulation}
+    The weighted minimum vertex cover problem can be formulated as the following integer programming problem:
+    \begin{equation}
+        \begin{array}{ll@{}ll}
+            \text{minimize}   & \displaystyle\sum\limits_{v\in V} w(v) & x_{v}               &                      \\
+            \text{subject to} & \displaystyle                          & x_{u} + x_v \geq 1, & \forall \{u,v\}\in E \\
+                              &                                        & x_{v} \in \{0,1\}.  &
+        \end{array}
+        \tag{IP}
+    \end{equation}
+
+    The vertex cover corresponding to a solution $x$ is given by $S = \{ v \in V : x_v = 1 \}$.
+
+    But solving (IP) is NP-hard in general.
+\end{frame}
+
+\begin{frame}{Linear Programing Relaxation}
+    Algorithms make use of the LP-relaxation
+    \begin{equation}
+        \begin{array}{ll@{}ll}
+            \text{minimize}   & \displaystyle\sum\limits_{v\in V} w(v) & x_{v}                             &                      \\
+            \text{subject to} & \displaystyle                          & x_{u} + x_v \geq 1,               & \forall \{u,v\}\in E \\
+                              &                                        & \textcolor{gustave}{x_{v} \ge 0.} &                      \\
+        \end{array}
+        \tag{LP}
+    \end{equation}
+
+    \textbf{Note:} Every optimal solution always has $x_v\le 1$, since if $x_v>1$ for some vertex $v$, we can set $x_v=1$ without violating any constraints and get a better solution.
+\end{frame}
+
+% \begin{frame}{Introduction}
+%     \begin{mytheorem}[Nemhauser-Trotter]
+%         There exists an optimal solution \textit{OPT} with the following properties:
+%         \begin{enumerate}[(a)]
+%             \item \textit{OPT} is a subset of $(V_1 \cup V_{1/2})$,
+%             \item \textit{OPT} includes all of $V_1$.
+%         \end{enumerate}
+%     \end{mytheorem}
+
+%     The Nemhauser–Trotter theorem guarantees that optimal LP extreme points satisfy $x_v \in \{ 0,1,1/2 \}$.
+% \end{frame}
+
+% \begin{frame}{Introduction}
+%     In this project, we try to make use of the Branch-and-Bound (BnB) algorithm to solve the MVC, using \textbf{'pulp'} library to implement the algorithm, and then we use \textbf{'networkx'} library to check the result with the maximum-matching, since we already have:
+%     \begin{align*}
+%         \textrm{maximum\_matching}(G) \leq \textrm{minimum\_VC}(G).
+%     \end{align*}
+
+%     Moreover, we also try to improve the result with the strong BnB algorithm.
+% \end{frame}

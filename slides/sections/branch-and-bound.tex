@@ -1,0 +1,261 @@
+\section{Branch-and-Bound for \\ Vertex Cover}
+
+\begin{frame}{Optimal Solutions of (LP)}
+  \begin{mytheorem}[Nemhauser-Trotter]
+    Let $x$ be an extreme point of the polytope defined by the constrains of (LP) we have $x_v \in \{0, \frac{1}{2}, 1\}$ for every $v \in V$.
+  \end{mytheorem}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Optimal Solutions of (LP)}
+  \textit{Proof.} Let $x$ be an extreme point. Let $U\subset V$ be the set of vertices such that $x_v \notin \{0, \frac{1}{2}, 1\}$ for every $v \in U$. Suppose for contradiction that $U$ is non-empty.
+
+  \begin{center}
+    \begin{tikzpicture}
+      % Draw the main line segment
+      \draw[thick, -] (0,0) -- (4,0);
+
+      % Mark the key points
+      \draw[] (0,0) node[above=3pt] {$0$};
+      \draw[] (2,0) node[above=3pt] {$\frac{1}{2}$};
+      \draw[] (4,0) node[above=3pt] {$1$};
+
+      % Add a variable point x_v
+      \draw[fill=gustave] (0.5,0) circle (2pt) node[above=3pt] {$x_v$};
+
+      % Add tick marks
+      \draw (0,0.1) -- (0,-0.1);
+      \draw (2,0.1) -- (2,-0.1);
+      \draw (4,0.1) -- (4,-0.1);
+
+      % Add curly brace from 0 to x_v
+      \draw[thick,decorate,decoration={brace,amplitude=3pt,mirror}] (0,-0.2) -- (0.5,-0.2);
+    \end{tikzpicture}
+    \hspace{1cm}
+    \begin{tikzpicture}
+      % Draw the main line segment
+      \draw[thick, -] (0,0) -- (4,0);
+
+      % Mark the key points
+      \draw[] (0,0) node[above=3pt] {$0$};
+      \draw[] (2,0) node[above=3pt] {$\frac{1}{2}$};
+      \draw[] (4,0) node[above=3pt] {$1$};
+
+      % Add a variable point x_v
+      \draw[fill=gustave] (1.5,0) circle (2pt) node[above=3pt] {$x_v$};
+
+      % Add tick marks
+      \draw (0,0.1) -- (0,-0.1);
+      \draw (2,0.1) -- (2,-0.1);
+      \draw (4,0.1) -- (4,-0.1);
+
+      % Add curly brace from 0 to x_v
+      \draw[thick,decorate,decoration={brace,amplitude=3pt,mirror}] (1.5,-0.2) -- (2,-0.2);
+    \end{tikzpicture}
+
+    \vspace{0.5cm}
+
+    \begin{tikzpicture}
+      % Draw the main line segment
+      \draw[thick, -] (0,0) -- (4,0);
+
+      % Mark the key points
+      \draw[] (0,0) node[above=3pt] {$0$};
+      \draw[] (2,0) node[above=3pt] {$\frac{1}{2}$};
+      \draw[] (4,0) node[above=3pt] {$1$};
+
+      % Add a variable point x_v
+      \draw[fill=gustave] (2.5,0) circle (2pt) node[above=3pt] {$x_v$};
+
+      % Add tick marks
+      \draw (0,0.1) -- (0,-0.1);
+      \draw (2,0.1) -- (2,-0.1);
+      \draw (4,0.1) -- (4,-0.1);
+
+      % Add curly brace from 0 to x_v
+      \draw[thick,decorate,decoration={brace,amplitude=3pt,mirror}] (2,-0.2) -- (2.5,-0.2);
+    \end{tikzpicture}
+    \hspace{1cm}
+    \begin{tikzpicture}
+      % Draw the main line segment
+      \draw[thick, -] (0,0) -- (4,0);
+
+      % Mark the key points
+      \draw[] (0,0) node[above=3pt] {$0$};
+      \draw[] (2,0) node[above=3pt] {$\frac{1}{2}$};
+      \draw[] (4,0) node[above=3pt] {$1$};
+
+      % Add a variable point x_v
+      \draw[fill=gustave] (3.5,0) circle (2pt) node[above=3pt] {$x_v$};
+
+      % Add tick marks
+      \draw (0,0.1) -- (0,-0.1);
+      \draw (2,0.1) -- (2,-0.1);
+      \draw (4,0.1) -- (4,-0.1);
+
+      % Add curly brace from 0 to x_v
+      \draw[thick,decorate,decoration={brace,amplitude=3pt,mirror}] (3.5,-0.2) -- (4,-0.2);
+    \end{tikzpicture}
+  \end{center}
+
+  Take the minimum distance $\epsilon$ from $x_v$ to the closest of $\{0, \frac{1}{2}, 1\}$ for every $v \in U$ i.e.
+  $$\epsilon = \min_{v \in U} \min \left\{ |x_v - 0|, \left| x_v - \frac{1}{2} \right|, |x_v - 1| \right\}.$$
+
+  Perturb $x$ at each $v \in U$ by $ \epsilon$ by two different ways to get two new solutions $x^+$ and $x^-$ defined as follows:
+  $$x^+(v) = \begin{cases}
+      x_v + \epsilon & \text{if } v \in U \text{ and } x_v < \frac{1}{2}, \\
+      x_v - \epsilon & \text{if } v \in U \text{ and } x_v > \frac{1}{2}, \\
+      x_v            & \text{otherwise}
+    \end{cases} \quad \quad
+    x^-(v) = \begin{cases}
+      x_v - \epsilon & \text{if } v \in U \text{ and } x_v < \frac{1}{2}, \\
+      x_v + \epsilon & \text{if } v \in U \text{ and } x_v > \frac{1}{2}, \\
+      x_v            & \text{otherwise}.
+    \end{cases}$$
+  We have $x=\dfrac{1}{2}(x^+ + x^-)$.
+
+  \break
+
+  Two see that both $x^+$ and $x^-$ are feasible, there are two cases
+
+  \begin{itemize}
+    \item[(i)] If an
+  \end{itemize}
+
+  \break
+
+  Since there is an optimal solution to (LP) that is also an extreme point, we conclude there exists an optimal solution $x^*$ such that $x^*_v \in \{0, \frac{1}{2}, 1\}$ for every $v \in V$.
+
+  Define the set $V_1$ of vertices with value 1 in $x^*$ and similarly the sets $V_0$ and $V_{1/2}$.
+
+  \begin{center}
+    \begin{tikzpicture}
+      % Box for V_1
+      \node at (1,3.3) {$V_0$};
+      \fill[green, opacity=0.2, rounded corners] (0,0) rectangle (2,3);
+
+      % Box for V_0
+      \node at (3,3.3) {$V_1$};
+      \fill[gustave, opacity=0.2, rounded corners] (2,0) rectangle (4,3);
+      % Box for V_{1/2}
+      \node at (5,3.3) {$V_{1/2}$};
+      \fill[gray, opacity=0.2, rounded corners] (4,0) rectangle (6,3);
+
+      \segment{0.75}{0.25}{2.75}{0.25}
+      \segment{3}{0.75}{3}{2.75}
+      \segment{3.25}{0.25}{5.25}{0.25}
+      \segment{5}{0.75}{5}{2.75}
+    \end{tikzpicture}
+  \end{center}
+  Possible cases of edges in $E$ are shown above.
+\end{frame}
+
+\begin{frame}{Solutions of (IP) from (LP)}
+  \begin{mytheorem}
+    Let $x^*$ be an optimal solution to (LP).  Then there exists an optimal solution of (IP) that generates a vertex cover $S\subset V$ such that $V_1 \subset S \subset V_1 \cup V_{1/2}$.
+  \end{mytheorem}
+\end{frame}
+
+\begin{frame}{Vertex Cover from (LP)}
+  \textit{Proof.} Firstly, we show that $S\subset V_1 \cup V_{1/2}$. Suppose not i.e. $C_0 = S\cap V_0$ is not empty.
+
+  For every vertex $v \in C_0$, there can only be edges between $v$ and vertices in $V_1$.
+  \begin{center}
+    \begin{tikzpicture}
+      % Box for V_1
+      \node at (1,3.3) {$V_0$};
+      \fill[green, opacity=0.2, rounded corners] (0,0) rectangle (2,3);
+
+      % Box for V_0
+      \node at (3,3.3) {$V_1$};
+      \fill[gustave, opacity=0.2, rounded corners] (2,0) rectangle (4,3);
+      % Box for V_{1/2}
+      \node at (5,3.3) {$V_{1/2}$};
+      \fill[gray, opacity=0.2, rounded corners] (4,0) rectangle (6,3);
+
+      % Box for S (vertex cover) - covers bottom half
+      \draw[thick, red, rounded corners] (0,0) rectangle (6,1.5);
+      \node at (6.2,0.75) {$S$};
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Vertex Cover from (LP)}
+  Edges from $C_0$ to $\overline{C}_1=V_1\setminus S$ are covered once by $S$.
+  \begin{center}
+    \begin{tikzpicture}
+      % Box for V_1
+      \node at (1,3.3) {$V_0$};
+      \fill[green, opacity=0.2, rounded corners] (0,0) rectangle (2,3);
+
+      % Box for V_0
+      \node at (3,3.3) {$V_1$};
+      \fill[gustave, opacity=0.2, rounded corners] (2,0) rectangle (4,3);
+      % Box for V_{1/2}
+      \node at (5,3.3) {$V_{1/2}$};
+      \fill[gray, opacity=0.2, rounded corners] (4,0) rectangle (6,3);
+
+      % Box for S (vertex cover) - covers bottom half
+      \draw[thick, red, rounded corners] (0,0) rectangle (6,1.5);
+      \node at (6.2,0.75) {$S$};
+
+      % Edge from C_0 to \overline{C}_1
+      \segment{1}{0.75}{3}{2.25}
+    \end{tikzpicture}
+  \end{center}
+  \break
+  If $w(\overline{C}_1) \le w(C_0)$, we can get a better solution by choosing $\overline{C}_1$ instead of $C_0$.
+  \begin{center}
+    \begin{tikzpicture}
+      % Box for V_1
+      \node at (1,3.3) {$V_0$};
+      \fill[green, opacity=0.2, rounded corners] (0,0) rectangle (2,3);
+
+      % Box for V_0
+      \node at (3,3.3) {$V_1$};
+      \fill[gustave, opacity=0.2, rounded corners] (2,0) rectangle (4,3);
+      % Box for V_{1/2}
+      \node at (5,3.3) {$V_{1/2}$};
+      \fill[gray, opacity=0.2, rounded corners] (4,0) rectangle (6,3);
+
+      % Box for S (vertex cover) - covers V_1 and bottom half of V_{1/2}
+      \draw[thick, red, rounded corners] (2,0) -- (2,3) -- (4,3) -- (4,1.5) -- (6,1.5) -- (6,0) -- cycle;
+      \node at (6.2,0.75) {$S$};
+
+      % Edge from C_0 to \overline{C}_1
+      \segment{1}{0.75}{3}{2.25}
+    \end{tikzpicture}
+  \end{center}
+
+  If $w(C_0) < w(\overline{C}_1)$, we use the perturbation technique again: add a small $\epsilon$ to every vertex in $C_0$ and subtract $\epsilon$ from every vertex in $\overline{C}_1$ to get a better feasible solution to (LP), contradicting the optimality of $x^*$.
+
+  \break
+
+  Now we prove that $V_1 \subset S$. Suppose not, i.e. $\overline{C}_1$ is nonempty. Let $v \in \overline{C}_1$.
+
+  \begin{center}
+    \begin{tikzpicture}
+      % Box for V_1
+      \node at (1,3.3) {$V_0$};
+      \fill[green, opacity=0.2, rounded corners] (0,0) rectangle (2,3);
+
+      % Box for V_0
+      \node at (3,3.3) {$V_1$};
+      \fill[gustave, opacity=0.2, rounded corners] (2,0) rectangle (4,3);
+      % Box for V_{1/2}
+      \node at (5,3.3) {$V_{1/2}$};
+      \fill[gray, opacity=0.2, rounded corners] (4,0) rectangle (6,3);
+
+      % Box for S (vertex cover) - covers V_1 and bottom half of V_{1/2}
+      \draw[thick, red, rounded corners] (2,0) -- (2,2.5) -- (4,2.5) -- (4,1.5) -- (6,1.5) -- (6,0) -- cycle;
+      \node at (6.2,0.75) {$S$};
+
+      \fill[gustave] (3,2.75) circle (2pt) node[right=2pt] {$v$};
+    \end{tikzpicture}
+  \end{center}
+
+  If $w(v) = 0$, include $v$ in $S$ anyway (the value of (IP) does not change).
+
+  Consider the case $w(v) > 0$. Note that $v$ cannot have neighbors in $V_0$. Hence, we can decrease $x_v$ from 1 to $\frac{1}{2}$ and get a better feasible solution to (LP), contradicting the optimality of $x^*$.
+\end{frame}
+
+
