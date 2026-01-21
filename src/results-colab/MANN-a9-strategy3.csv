@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+MANN-a9.vc,45,918,strong_branch_vc,42.0,81,1335,18.11,False

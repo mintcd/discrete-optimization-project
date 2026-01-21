@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+inf-USAir97.vc,332,2126,strong_branch_vc,150.0*,1162,62353,600.41,True

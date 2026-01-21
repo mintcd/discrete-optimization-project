@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+johnson8-2-4.vc,28,210,strong_branch_vc,21.0,31,676,4.73,False
