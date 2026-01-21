@@ -16,12 +16,11 @@ python main.py
 
 Arguments:
 
-- `--all` : Run all instances in the `instances/` folder
-- `--instance [path]` : Run a specific instance file
-- `--strategy [1-3]` : Select branching strategy (optional, defaults to all strategies)
-  - `1` : Include max degree vertex first
+- `--instance [path]` : Run a specific instance file (required)
+- `--strategy [1-3]` : Select branching strategy (optional, defaults to 1)
+  - `1` : Include max degree vertex first (default)
   - `2` : Exclude max degree vertex first
-  - `3` : Full strong branching (default)
+  - `3` : Full strong branching
 - `--out [path]` : Output CSV file path (default: `solutions.csv`)
 
 ## Branching Strategies
@@ -46,15 +45,14 @@ Results are saved to a CSV file with the following columns:
 ## Examples
 
 ```bash
-# Quick test on one instance
+# Run with default strategy (1)
+python main.py --instance instances/MANN-a9.vc
+
+# Run with specific strategy
 python main.py --instance instances/MANN-a9.vc --strategy 3
 
-# Full benchmark with all strategies
-python main.py --all --out full_benchmark.csv
-
-# Compare strategy 1 vs strategy 3
-python main.py --all --strategy 1 --out strategy1.csv
-python main.py --all --strategy 3 --out strategy3.csv
+# Run with custom output file
+python main.py --instance instances/MANN-a9.vc --strategy 2 --out my_results.csv
 ```
 
 ## Customizations

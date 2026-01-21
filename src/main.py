@@ -31,12 +31,12 @@ def get_strategy_name(strategy_num):
     return names.get(strategy_num, f"strategy_{strategy_num}")
 
 
-def run_instance(instance_path, strategy_num, strategy_func):
+def run_instance(instance_path, strategy_num, strategy_func, timeout=None):
     """Run a single instance with a given strategy."""
     G = load_instance(instance_path)
     
     start_time = time.time()
-    Z, UB, node_counter, lp_counter = branch_and_bound(G, strategy=strategy_func)
+    Z, UB, node_counter, lp_counter, timed_out = branch_and_bound(G, strategy=strategy_func, timeout=timeout)
     runtime = time.time() - start_time
     
     instance_name = os.path.basename(instance_path)
@@ -47,14 +47,15 @@ def run_instance(instance_path, strategy_num, strategy_func):
         "|V|": len(G.V),
         "|E|": len(G.E),
         "strategy": strategy_name,
-        "opt_VC": UB,
+        "opt_VC": UB if not timed_out else f"{UB}*",
         "BnB_nodes": node_counter,
         "LP_calls": lp_counter,
-        "runtime_sec": round(runtime, 2)
+        "runtime_sec": round(runtime, 2),
+        "timed_out": timed_out
     }
 
 
-def run_all_instances(instances_dir, strategies, output_file):
+def run_all_instances(instances_dir, strategies, output_file, timeout=None):
     """Run all instances in the directory with all specified strategies."""
     results = []
     
@@ -83,9 +84,10 @@ def run_all_instances(instances_dir, strategies, output_file):
             print(f"Running {instance_name} with {strategy_name}...", end=" ")
             
             try:
-                result = run_instance(instance_path, strategy_num, strategy_func)
+                result = run_instance(instance_path, strategy_num, strategy_func, timeout)
                 results.append(result)
-                print(f"✓ (opt={result['opt_VC']}, time={result['runtime_sec']}s)")
+                status = "TIMEOUT" if result['timed_out'] else "✓"
+                print(f"{status} (opt={result['opt_VC']}, time={result['runtime_sec']}s)")
             except Exception as e:
                 print(f"✗ Error: {e}")
                 continue
@@ -98,7 +100,7 @@ def run_all_instances(instances_dir, strategies, output_file):
         print("\nNo results to write.")
 
 
-def run_single_instance(instance_path, strategies, output_file):
+def run_single_instance(instance_path, strategies, output_file, timeout=None):
     """Run a single instance with all specified strategies."""
     results = []
     
@@ -118,9 +120,10 @@ def run_single_instance(instance_path, strategies, output_file):
         print(f"Running with {strategy_name}...", end=" ")
         
         try:
-            result = run_instance(instance_path, strategy_num, strategy_func)
+            result = run_instance(instance_path, strategy_num, strategy_func, timeout)
             results.append(result)
-            print(f"✓ (opt={result['opt_VC']}, time={result['runtime_sec']}s)")
+            status = "TIMEOUT" if result['timed_out'] else "✓"
+            print(f"{status} (opt={result['opt_VC']}, time={result['runtime_sec']}s)")
         except Exception as e:
             print(f"✗ Error: {e}")
             continue
@@ -148,30 +151,22 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run all instances with all strategies
-  python main.py --all
-  
-  # Run all instances with strategy 3 only
-  python main.py --all --strategy 3
-  
-  # Run single instance with all strategies
+  # Run single instance with default strategy (1)
   python main.py --instance instances/MANN-a9.vc
+  
+  # Run single instance with specific strategy
+  python main.py --instance instances/MANN-a9.vc --strategy 3
   
   # Run single instance with specific strategy and output file
   python main.py --instance instances/MANN-a9.vc --strategy 1 --out my_results.csv
         """
     )
     
-    # Instance selection (mutually exclusive)
-    instance_group = parser.add_mutually_exclusive_group(required=True)
-    instance_group.add_argument(
-        "--all",
-        action="store_true",
-        help="Run all instances in the instances folder"
-    )
-    instance_group.add_argument(
+    # Instance selection
+    parser.add_argument(
         "--instance",
         type=str,
+        required=True,
         help="Path to a specific instance file"
     )
     
@@ -180,7 +175,8 @@ Examples:
         "--strategy",
         type=int,
         choices=[1, 2, 3],
-        help="Strategy to use (1: include_max_degree, 2: exclude_min_degree, 3: full_strong). If not specified, runs all strategies."
+        default=1,
+        help="Strategy to use (1: include_max_degree, 2: exclude_min_degree, 3: full_strong). Default: 1"
     )
     
     # Output file
@@ -191,26 +187,21 @@ Examples:
         help="Path to output CSV file (default: solutions.csv)"
     )
     
+    # Timeout
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=None,
+        help="Maximum runtime in seconds for each instance (default: no timeout)"
+    )
+    
     args = parser.parse_args()
     
-    # Determine which strategies to run
-    if args.strategy:
-        strategies = [args.strategy]
-    else:
-        strategies = [1, 2, 3]  # Run all strategies
+    # Use the specified strategy (now defaults to 1)
+    strategies = [args.strategy]
     
-    # Get script directory for default paths
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Run based on the selected mode
-    if args.all:
-        instances_dir = os.path.join(script_dir, "instances")
-        if not os.path.exists(instances_dir):
-            print(f"Error: Instances directory not found: {instances_dir}")
-            return
-        run_all_instances(instances_dir, strategies, args.out)
-    else:  # --instance
-        run_single_instance(args.instance, strategies, args.out)
+    # Run the instance
+    run_single_instance(args.instance, strategies, args.out, args.timeout)
 
 
 if __name__ == "__main__":

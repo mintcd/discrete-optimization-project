@@ -1,4 +1,2 @@
-instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec
-MANN-a9.vc,45,918,include_max_degree,42.0,79,57,1.81
-MANN-a9.vc,45,918,exclude_min_degree,42.0,115,67,2.21
-MANN-a9.vc,45,918,full_strong,42.0,79,370,11.96
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+MANN-a9.vc,45,918,include_max_degree,42.0,79,57,1.8,False
