@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+delaunay_n10.vc,1024,3056,include_max_degree,717.0*,96158,88318,600.04,True

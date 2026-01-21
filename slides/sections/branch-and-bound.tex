@@ -1,0 +1,31 @@
+\section{Branch and Bound for Vertex Cover}
+\begin{frame}{General Algorithm}
+
+  \begin{enumerate}
+    \item Maintain the current cost and the current best solution.
+    \item Extract $S_0, S_1$ and $S_{1/2}$ from an extreme solution of (LP).
+    \item If adding $S_1$ exceeds the current best solution, stop (prune this branch).
+    \item If $S_{1/2}$ is empty, update the current best solution if necessary and stop.
+    \item Choose a vertex $v \in S_{1/2}$.
+    \item Return to step 2 two following graphs in some order:
+          \begin{itemize}
+            \item Graph with $v$ included in the vertex cover (remove $v$ and its incident edges).
+            \item Graph with $v$ excluded from the vertex cover (remove $v$'s neighbors and their incident edges, add $v$ to the current cost).
+          \end{itemize}
+  \end{enumerate}
+
+  Different strategies for steps 5 and 6 lead to different algorithms.
+\end{frame}
+
+\begin{frame}{Experiments}
+  We consider three strategies
+  \begin{itemize}
+    \item Choosing the vertex with the highest degree in $S_{1/2}$ and include it first.
+    \item Choosing the vertex with the lowest degree in $S_{1/2}$ and exclude it first.
+    \item Fully-strong branching \footnote{Bénichou, Michel, et al. "Experiments in mixed-integer linear programming." Mathematical programming 1.1 (1971): 76-94.}: choose the vertex and the order whose resulting two LP relaxations have the highest total value.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+
+\end{frame}

@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+hamming6-2.vc,64,1824,include_max_degree,62.0,265,189,1.92,False

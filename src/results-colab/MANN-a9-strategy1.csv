@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+MANN-a9.vc,45,918,include_max_degree,42.0,79,57,0.64,False

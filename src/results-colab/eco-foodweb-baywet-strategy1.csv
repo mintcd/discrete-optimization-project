@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+eco-foodweb-baywet.vc,128,2075,include_max_degree,86.0,91,89,2.24,False

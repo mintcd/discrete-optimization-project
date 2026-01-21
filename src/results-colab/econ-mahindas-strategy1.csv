@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+econ-mahindas.vc,1258,7619,include_max_degree,730.0*,8270,8219,600.12,True

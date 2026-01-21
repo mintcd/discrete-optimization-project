@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+brock200-1.vc,200,14834,include_max_degree,194.0*,6587,6565,300.03,True

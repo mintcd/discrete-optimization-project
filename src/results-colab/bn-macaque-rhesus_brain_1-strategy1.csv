@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+bn-macaque-rhesus_brain_1.vc,242,3054,include_max_degree,150.0,1851,1851,48.13,False

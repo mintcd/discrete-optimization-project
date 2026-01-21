@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+C125-9.vc,125,6963,include_max_degree,121.0,487,364,11.31,False
