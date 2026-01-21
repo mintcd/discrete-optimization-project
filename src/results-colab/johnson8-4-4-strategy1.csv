@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+johnson8-4-4.vc,70,1855,include_max_degree,65.0,323,276,2.64,False

@@ -26,6 +26,32 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-
+\begin{frame}{Results - Strategy 1: Highest Degree Include First}
+  \small
+  \begin{table}
+    \centering
+    \begin{tabular}{lrrrrrr}
+      \hline
+      Instance           & $|V|$ & $|E|$ & Opt VC & BnB Nodes & LP Calls & Time (s) \\
+      \hline
+      johnson8-2-4       & 28    & 210   & 21     & 31        & 31       & 0.22     \\
+      MANN-a9            & 45    & 918   & 42     & 79        & 57       & 0.64     \\
+      hamming6-2         & 64    & 1824  & 62     & 265       & 189      & 1.92     \\
+      johnson8-4-4       & 70    & 1855  & 65     & 323       & 276      & 2.64     \\
+      johnson16-2-4      & 120   & 5460  & 105    & 183       & 183      & 8.87     \\
+      C125-9             & 125   & 6963  & 121    & 487       & 364      & 11.31    \\
+      eco-foodweb-baywet & 128   & 2075  & 86     & 91        & 89       & 2.24     \\
+      keller4            & 171   & 9435  & 156    & 2849      & 2835     & 47.41    \\
+      brock200-1         & 200   & 14834 & 194    & 6723      & 6701     & 92.82    \\
+      bn-macaque         & 242   & 3054  & 150    & 1851      & 1851     & 48.13    \\
+      inf-USAir97        & 332   & 2126  & 149    & 791       & 775      & 6.37     \\
+      delaunay\_n10      & 1024  & 3056  & 717*   & 96158     & 88318    & 600.04   \\
+      econ-mahindas      & 1258  & 7619  & 730*   & 8270      & 8219     & 600.12   \\
+      inf-euroroad       & 1174  & 1417  & 571*   & 66220     & 64256    & 600.01   \\
+      mk11-b2            & 6930  & 20779 & 909    & 1         & 1        & 1.21     \\
+      \hline
+    \end{tabular}
+  \end{table}
+  \vspace{-0.2cm}
+  {\footnotesize * indicates timeout (10 min limit)}
 \end{frame}

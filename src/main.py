@@ -6,7 +6,7 @@ from bnb import (
     branch_and_bound,
     include_max_degree_vertex,
     exclude_min_degree_vertex,
-    full_strong
+    strong_branch_vc
 )
 from processing import load_instance
 
@@ -16,7 +16,7 @@ def get_strategy(strategy_num):
     strategies = {
         1: include_max_degree_vertex,
         2: exclude_min_degree_vertex,
-        3: full_strong
+        3: strong_branch_vc
     }
     return strategies.get(strategy_num)
 
@@ -26,7 +26,7 @@ def get_strategy_name(strategy_num):
     names = {
         1: "include_max_degree",
         2: "exclude_min_degree",
-        3: "full_strong"
+        3: "strong_branch_vc"
     }
     return names.get(strategy_num, f"strategy_{strategy_num}")
 
@@ -55,53 +55,8 @@ def run_instance(instance_path, strategy_num, strategy_func, timeout=None):
     }
 
 
-def run_all_instances(instances_dir, strategies, output_file, timeout=None):
-    """Run all instances in the directory with all specified strategies."""
-    results = []
-    
-    # Get all .vc files in the directory
-    instance_files = sorted([
-        os.path.join(instances_dir, f)
-        for f in os.listdir(instances_dir)
-        if f.endswith(".vc")
-    ])
-    
-    if not instance_files:
-        print(f"No .vc files found in {instances_dir}")
-        return
-    
-    print(f"Found {len(instance_files)} instances")
-    print(f"Running with {len(strategies)} strategy/strategies")
-    print("-" * 60)
-    
-    for instance_path in instance_files:
-        instance_name = os.path.basename(instance_path)
-        
-        for strategy_num in strategies:
-            strategy_func = get_strategy(strategy_num)
-            strategy_name = get_strategy_name(strategy_num)
-            
-            print(f"Running {instance_name} with {strategy_name}...", end=" ")
-            
-            try:
-                result = run_instance(instance_path, strategy_num, strategy_func, timeout)
-                results.append(result)
-                status = "TIMEOUT" if result['timed_out'] else "✓"
-                print(f"{status} (opt={result['opt_VC']}, time={result['runtime_sec']}s)")
-            except Exception as e:
-                print(f"✗ Error: {e}")
-                continue
-    
-    # Write results to CSV
-    if results:
-        write_results(results, output_file)
-        print(f"\nResults written to {output_file}")
-    else:
-        print("\nNo results to write.")
-
-
-def run_single_instance(instance_path, strategies, output_file, timeout=None):
-    """Run a single instance with all specified strategies."""
+def run_single_instance(instance_path, strategy, output_file, timeout=None):
+    """Run a single instance with the specified strategy."""
     results = []
     
     if not os.path.exists(instance_path):
@@ -109,24 +64,21 @@ def run_single_instance(instance_path, strategies, output_file, timeout=None):
         return
     
     instance_name = os.path.basename(instance_path)
-    print(f"Running instance: {instance_name}")
-    print(f"With {len(strategies)} strategy/strategies")
-    print("-" * 60)
+    strategy_func = get_strategy(strategy)
+    strategy_name = get_strategy_name(strategy)
     
-    for strategy_num in strategies:
-        strategy_func = get_strategy(strategy_num)
-        strategy_name = get_strategy_name(strategy_num)
+    print(f"Running instance: {instance_name}")
+    print(f"With strategy: {strategy_name}")
+    print("-" * 60)
         
-        print(f"Running with {strategy_name}...", end=" ")
-        
-        try:
-            result = run_instance(instance_path, strategy_num, strategy_func, timeout)
-            results.append(result)
-            status = "TIMEOUT" if result['timed_out'] else "✓"
-            print(f"{status} (opt={result['opt_VC']}, time={result['runtime_sec']}s)")
-        except Exception as e:
-            print(f"✗ Error: {e}")
-            continue
+    try:
+        result = run_instance(instance_path, strategy, strategy_func, timeout)
+        results.append(result)
+        status = "TIMEOUT" if result['timed_out'] else "✓"
+        print(f"{status} (opt={result['opt_VC']}, time={result['runtime_sec']}s)")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        return
     
     # Write results to CSV
     if results:
@@ -176,7 +128,7 @@ Examples:
         type=int,
         choices=[1, 2, 3],
         default=1,
-        help="Strategy to use (1: include_max_degree, 2: exclude_min_degree, 3: full_strong). Default: 1"
+        help="Strategy to use (1: include_max_degree, 2: exclude_min_degree, 3: strong_branch_vc). Default: 1"
     )
     
     # Output file
@@ -197,11 +149,8 @@ Examples:
     
     args = parser.parse_args()
     
-    # Use the specified strategy (now defaults to 1)
-    strategies = [args.strategy]
-    
-    # Run the instance
-    run_single_instance(args.instance, strategies, args.out, args.timeout)
+    # Run the instance with the specified strategy (defaults to 1)
+    run_single_instance(args.instance, args.strategy, args.out, args.timeout)
 
 
 if __name__ == "__main__":

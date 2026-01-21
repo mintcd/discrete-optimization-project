@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+keller4.vc,171,9435,include_max_degree,156.0,2849,2835,47.41,False

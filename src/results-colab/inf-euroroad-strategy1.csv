@@ -1,0 +1,2 @@
+instance,|V|,|E|,strategy,opt_VC,BnB_nodes,LP_calls,runtime_sec,timed_out
+inf-euroroad.vc,1174,1417,include_max_degree,571.0*,66220,64256,600.01,True

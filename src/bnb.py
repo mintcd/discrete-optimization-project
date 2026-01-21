@@ -20,51 +20,45 @@ def exclude_min_degree_vertex(G):
     v = min(G.V, key=lambda u: len(G.neighbors(u)))
     return v, 0, 0  # (vertex, included, lp_count)
 
-def full_strong(G, eps=1e-6, max_candidates=5):
+def strong_branch_vc(G, eps=1e-9, max_candidates=None):
     lp_count = 0
-    
-    base_lp, _ = solve_lp(G)
+
+    z_base, x = solve_lp(G)
     lp_count += 1
 
-    # Only consider top vertices by degree (limited subset)
-    candidates = sorted(
-        G.V,
-        key=lambda v: len(G.neighbors(v)),
-        reverse=True
-    )[:max_candidates]  # Limit to top max_candidates vertices
+    frac = [v for v in G.V if eps < x[v] < 1 - eps]
+    if not frac:
+        return None, None, lp_count  # already integral at this node
+
+    # optional restriction
+    candidates = frac
+    if max_candidates is not None and len(candidates) > max_candidates:
+        candidates = sorted(candidates, key=lambda v: len(G.neighbors(v)), reverse=True)[:max_candidates]
 
     best_v = None
     best_score = -1
-    best_branch = 1 
+    best_first_branch = None
 
     for v in candidates:
         # x_v = 1
         G1 = G.remove_vertices({v})
-        if not G1.E:
-            lp1 = 0.0
-        else:
-            lp1 = solve_lp(G1)[0]
-            lp_count += 1
+        z1 = 1 + (0.0 if not G1.E else solve_lp(G1)[0]); lp_count += (1 if G1.E else 0)
 
-        # x_v = 0
+        # x_v = 0 => force N(v) in cover
         Nv = G.neighbors(v)
         G0 = G.remove_vertices({v} | Nv)
-        if not G0.E:
-            lp0 = 0.0
-        else:
-            lp0 = solve_lp(G0)[0]
-            lp_count += 1
+        z0 = len(Nv) + (0.0 if not G0.E else solve_lp(G0)[0]); lp_count += (1 if G0.E else 0)
 
-        score = max(lp1 - base_lp, lp0 - base_lp, eps)
+        d1 = z1 - z_base
+        d0 = z0 - z_base
+        score = min(d0, d1)  # robust strong-branching score
 
         if score > best_score:
             best_score = score
             best_v = v
-            # Branch on the side with worse (higher) LP value first
-            best_branch = 1 if lp1 >= lp0 else 0
+            best_first_branch = 1 if z1 <= z0 else 0  # explore smaller bound first
 
-    return best_v, best_branch, lp_count
-
+    return best_v, best_first_branch, lp_count
 
 """ Branch-and-bound algorithm """
 def branch_and_bound(G, Z=0, strategy=include_max_degree_vertex, UB=math.inf, node_count=0, lp_count=0, timeout=None, start_time=None):
