@@ -1,198 +1,166 @@
-import pulp
 import math
+from relaxed_lp import solve_lp
 
-# ======================================================
-# Graph structure
-# ======================================================
+""" Strategies for branch and bound: 
+    1) Choosing the next vertex
+    2) Choose to include or exclude it.
 
-class Graph:
-    def __init__(self, V, E, c):
-        self.V = set(V)
-        self.E = set(frozenset(e) for e in E if len(e) == 2)
-        self.c = dict(c)
+    Return: (v, included, lp_count)
+        - v: vertex to branch on
+        - included: 1 to include first, 0 to exclude first
+        - lp_count: number of LPs solved during strategy
+"""
 
-    def neighbors(self, v):
-        return {u for e in self.E if v in e for u in e if u != v}
+def include_max_degree_vertex(G):
+    v = max(G.V, key=lambda u: len(G.neighbors(u)))
+    return v, 1, 0  # (vertex, included, lp_count)
 
-    def remove_vertices(self, S):
-        S = set(S)
-        V_new = self.V - S
-        E_new = {e for e in self.E if e.isdisjoint(S) and len(e) == 2}
-        c_new = {v: self.c[v] for v in V_new}
-        return Graph(V_new, E_new, c_new)
+def exclude_min_degree_vertex(G):
+    v = min(G.V, key=lambda u: len(G.neighbors(u)))
+    return v, 0, 0  # (vertex, included, lp_count)
 
-
-# ======================================================
-# Global counters
-# ======================================================
-
-UB = math.inf
-node_counter = 0
-lp_counter = 0
-
-
-# ======================================================
-# LP relaxation (SAFE)
-# ======================================================
-
-def solve_lp(G):
-    global lp_counter
-
-    # No edges → LP value is 0
-    if not G.E:
-        return 0.0, {}
-
-    lp_counter += 1
-
-    prob = pulp.LpProblem("VC_LP", pulp.LpMinimize)
-    x = {v: pulp.LpVariable(f"x_{v}", 0, 1) for v in G.V}
-
-    prob += pulp.lpSum(G.c[v] * x[v] for v in G.V)
-
-    for e in G.E:
-        if len(e) != 2:
-          continue
-        u, v = tuple(e)
-        prob += x[u] + x[v] >= 1
-
-    prob.solve(pulp.PULP_CBC_CMD(msg=False))
-
-    obj = pulp.value(prob.objective)
-    if obj is None:
-        return 0.0, {}
-
-    return obj, {v: x[v].value() for v in G.V}
-
-
-# ======================================================
-# Strong branching (SAFE)
-# ======================================================
-
-def strong_branch_vertex(G, candidates, max_candidates=5, eps=1e-6):
+def full_strong(G, eps=1e-6, max_candidates=5):
+    lp_count = 0
+    
     base_lp, _ = solve_lp(G)
+    lp_count += 1
 
-    cand = sorted(
-        candidates,
+    # Only consider top vertices by degree (limited subset)
+    candidates = sorted(
+        G.V,
         key=lambda v: len(G.neighbors(v)),
         reverse=True
-    )[:max_candidates]
+    )[:max_candidates]  # Limit to top max_candidates vertices
 
     best_v = None
     best_score = -1
+    best_branch = 1 
 
-    for v in cand:
+    for v in candidates:
         # x_v = 1
         G1 = G.remove_vertices({v})
-        lp1 = 0.0 if not G1.E else solve_lp(G1)[0]
+        if not G1.E:
+            lp1 = 0.0
+        else:
+            lp1 = solve_lp(G1)[0]
+            lp_count += 1
 
         # x_v = 0
         Nv = G.neighbors(v)
         G0 = G.remove_vertices({v} | Nv)
-        lp0 = 0.0 if not G0.E else solve_lp(G0)[0]
+        if not G0.E:
+            lp0 = 0.0
+        else:
+            lp0 = solve_lp(G0)[0]
+            lp_count += 1
 
         score = max(lp1 - base_lp, lp0 - base_lp, eps)
 
         if score > best_score:
             best_score = score
             best_v = v
+            # Branch on the side with worse (higher) LP value first
+            best_branch = 1 if lp1 >= lp0 else 0
 
-    return best_v
+    return best_v, best_branch, lp_count
 
 
-# ======================================================
-# Branch and Bound
-# ======================================================
-
-def branch_and_bound(G, Z):
-    global UB, node_counter
-
-    node_counter += 1
-
-    # No edges → feasible cover
+""" Branch-and-bound algorithm """
+def branch_and_bound(G, Z=0, strategy=include_max_degree_vertex, UB=math.inf, node_count=0, lp_count=0):
+    """
+    Solve the minimum weighted vertex cover problem using branch-and-bound with strong branching.
+    
+    Uses LP relaxation for bounds, graph reduction techniques, and strong branching for 
+    intelligent vertex selection. The algorithm recursively explores the search tree, 
+    pruning branches when the lower bound exceeds the current upper bound.
+    
+    Args:
+        G: A Graph object with vertices V, edges E, neighbors method, remove_vertices method,
+           and vertex costs c (dict mapping vertex -> cost).
+        Z: Current cost of included vertices.
+        UB: Upper bound (best solution cost found so far).
+        node_count: Number of branch-and-bound nodes explored.
+        lp_count: Number of LP relaxations solved.
+    
+    Returns:
+        tuple: (Z, UB, node_count, lp_count)
+    """
+    
+    node_count += 1
+    
+    # Base case: no edges
     if not G.E:
         UB = min(UB, Z)
-        return
+        return Z, UB, node_count, lp_count
 
+    # Solve LP relaxation
     lp_val, x = solve_lp(G)
+    lp_count += 1
     LB = Z + lp_val
 
     if LB >= UB:
-        return
+        return Z, UB, node_count, lp_count
 
-    # Nemhauser-Trotter
+    # Take the integral variables
     S0 = {v for v, val in x.items() if val < 1e-6}
     S1 = {v for v, val in x.items() if val > 1 - 1e-6}
 
-    # Integral LP
+    # If all variables are integral, update UB and return
     if len(S0) + len(S1) == len(G.V):
         UB = min(UB, Z + lp_val)
-        return
+        return Z, UB, node_count, lp_count
+    
+    G_red = G.remove_vertices(S0 | S1)
+    Z_new = Z + sum(G.c[v] for v in S1)
 
-    # Reduction
-    N_S0 = set().union(*(G.neighbors(v) for v in S0)) if S0 else set()
-    fixed = S1 | N_S0
-    Z_new = Z + sum(G.c[v] for v in fixed)
+    # Choose a vertex to branch on
+    v, included, strategy_lp_count = strategy(G_red)
+    lp_count += strategy_lp_count
 
-    G_red = G.remove_vertices(S0 | S1 | N_S0)
+    # Include first
+    if included == 1:
+        # Branch 1: include v
+        _, UB, node_count, lp_count = branch_and_bound(
+            G_red.remove_vertices({v}),
+            Z_new + G_red.c[v],
+            strategy,
+            UB,
+            node_count,
+            lp_count
+        )
+        
+        # Branch 2: exclude v
+        Nv = G_red.neighbors(v)
+        _, UB, node_count, lp_count = branch_and_bound(
+            G_red.remove_vertices({v} | Nv),
+            Z_new + sum(G_red.c[u] for u in Nv),
+            strategy,
+            UB,
+            node_count,
+            lp_count
+        )
+        
+        return Z, UB, node_count, lp_count
+    
 
-    if not G_red.E:
-        UB = min(UB, Z_new)
-        return
-
-    # Recompute LP after reduction
-    lp_red, x_red = solve_lp(G_red)
-    S_half = {v for v, val in x_red.items() if 1e-6 < val < 1 - 1e-6}
-
-    if not S_half:
-        UB = min(UB, Z_new + lp_red)
-        return
-
-    # Strong branching
-    v = strong_branch_vertex(G_red, S_half)
-    assert v in G_red.V
-
-    # Branch 1: include v
-    branch_and_bound(
-        G_red.remove_vertices({v}),
-        Z_new + G_red.c[v]
-    )
-
-    # Branch 2: exclude v
+    # Exclude first
     Nv = G_red.neighbors(v)
-    branch_and_bound(
+    _, UB, node_count, lp_count = branch_and_bound(
         G_red.remove_vertices({v} | Nv),
-        Z_new + sum(G_red.c[u] for u in Nv)
+        Z_new + sum(G_red.c[u] for u in Nv),
+        strategy,
+        UB,
+        node_count,
+        lp_count
     )
 
-
-# ======================================================
-# Instance loader
-# ======================================================
-
-def load_instance(path):
-    with open(path) as f:
-        n, m = map(int, f.readline().split())
-        weights = list(map(float, f.readline().split()))
-        V = list(range(1, n + 1))
-        c = {i + 1: weights[i] for i in range(n)}
-        E = [tuple(map(int, line.split())) for line in f]
-    return Graph(V, E, c)
-
-
-# ======================================================
-# Main
-# ======================================================
-
-if __name__ == "__main__":
-    import sys
-
-    G = load_instance("instances/MANN-a9.vc")
-    UB = math.inf
-    node_counter = 0
-    lp_counter = 0
-
-    branch_and_bound(G, 0)
-
-    print("Optimal vertex cover cost:", UB)
-    print("Branch-and-bound tree size:", node_counter)
-    print("LP relaxations solved:", lp_counter)
+    _, UB, node_count, lp_count = branch_and_bound(
+        G_red.remove_vertices({v}),
+        Z_new + G_red.c[v],
+        strategy,
+        UB,
+        node_count,
+        lp_count
+    )
+    
+    return Z, UB, node_count, lp_count

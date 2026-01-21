@@ -77,7 +77,7 @@ def vertex_cover_bnb(G, cutoff=60):
                 Gp.remove_node(v)
                 Zp += 1
 
-        # S0 (simple version – giữ nguyên code của bạn)
+        # S0 (simple version - giữ nguyên code của bạn)
         for v in S0:
             if v in Gp:
                 nbrs = list(Gp.neighbors(v))
