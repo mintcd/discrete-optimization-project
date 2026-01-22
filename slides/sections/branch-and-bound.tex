@@ -1,7 +1,7 @@
 \section{Branch and Bound for Vertex Cover}
 
 \begin{frame}{Necessity of Nemhauser-Trotter theorem}
-  Nemhauser-Trotter theorem is essential for the correctness of the LP-based branch-and-bound algorithm because we can put all $S_1$ into the vertex cover immediately, choose not to include all $S_0$, and only branch on $S_{1/2}$.
+  Nemhauser-Trotter theorem is essential for the correctness of the LP-based branch-and-bound algorithm because we can put all $S_1$ into the vertex cover immediately, not include all $S_0$, and only branch on $S_{1/2}$.
 
   % It guarantees that vertices assigned value 1 or 0 by the LP relaxation are respectively included in or excluded from at least one optimal vertex cover. This allows the algorithm to fix these vertices without branching while preserving optimality. Without this theorem, fixing variables based on LP values could remove all optimal solutions, making the algorithm incorrect.
 \end{frame}
@@ -55,12 +55,11 @@
 
   Different strategies for steps 5 and 6 lead to different algorithms.
 
-  $\Rightarrow$ Overall, it suffices to show that the time complexity of BnB algorithm is  $\mathcal{O}(2^{|V|})$.
-  \footnote{The implementation of the algorithm can be seen at \href{https://github.com/mintcd/discrete-optimization-project}{https://github.com/mintcd/discrete-optimization-project}}
+However, BnB can be shown to suffer from $O(2^{|V|})$ for some instances \footnote{Dey, Santanu S., et al. "A theoretical and computational analysis of full strong-branching." Mathematical Programming 205.1 (2024): 303-336.}
 \end{frame}
 
 \begin{frame}{Experiments}
-  We consider three strategies
+  We consider three strategies \footnote{Implementation is on \href{https://github.com/mintcd/discrete-optimization-project}{https://github.com/mintcd/discrete-optimization-project}}
   \begin{itemize}
     \item Choosing the vertex with the highest degree in $S_{1/2}$ and include it first.
     \item Choosing the vertex with the lowest degree in $S_{1/2}$ and exclude it first.
