@@ -1,1 +1,1 @@
-Optimization Project - Branch and Bound Algorithm for Minimum Vertex Cover
+# Optimization Project - Branch and Bound Algorithm for Minimum Vertex Cover
